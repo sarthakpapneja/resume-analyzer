@@ -5,8 +5,42 @@ echo "🚀 Starting Resume Analyzer Setup..."
 
 # Check for Docker
 if ! command -v docker &> /dev/null; then
-    echo "Error: Docker is not installed or not in PATH."
-    exit 1
+    echo "⚠️ Docker not found. Switching to Native Mode..."
+    
+    # Check Ports
+    if lsof -i :3000 > /dev/null || lsof -i :8000 > /dev/null; then
+        echo "❌ Ports 3000 or 8000 are in use. Please stop other processes."
+        lsof -i :3000
+        lsof -i :8000
+        exit 1
+    fi
+
+    echo "📦 Initializing Backend (Native)..."
+    cd backend
+    if [ ! -d "venv" ]; then
+        python3 -m venv venv
+    fi
+    source venv/bin/activate
+    echo "Installing Python dependencies (this may take a while)..."
+    pip install -r requirements.txt
+    python -m spacy download en_core_web_sm
+    # Run Backend in background
+    uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload &
+    BACKEND_PID=$!
+    cd ..
+
+    echo "🎨 Initializing Frontend (Native)..."
+    cd frontend
+    if [ ! -d "node_modules" ]; then
+        npm install
+    fi
+    # Run Frontend (this will take over the terminal)
+    echo "✅ Starting Frontend... (Press Ctrl+C to stop)"
+    npm run dev
+    
+    # Cleanup
+    kill $BACKEND_PID
+    exit 0
 fi
 
 echo "📦 Building and Starting Containers..."
