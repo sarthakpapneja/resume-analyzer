@@ -1,0 +1,23 @@
+# System
+.DS_Store
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+.pytest_cache/
+
+# Node
+node_modules/
+.next/
+out/
+build/
+.vercel
+
+# Data
+demo_data/
+faiss_index.bin
+faiss_index.bin.meta
