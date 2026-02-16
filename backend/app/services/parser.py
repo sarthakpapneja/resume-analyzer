@@ -1,7 +1,7 @@
 import io
 import re
 from pdfminer.high_level import extract_text as extract_pdf_text
-from docx import Document
+# from docx import Document
 
 class ResumeParser:
     @staticmethod
@@ -19,10 +19,14 @@ class ResumeParser:
     def parse_docx(file_bytes: bytes) -> str:
         """Extract text from DOCX bytes."""
         try:
+            from docx import Document
             with io.BytesIO(file_bytes) as f:
                 doc = Document(f)
-                text = "\\n".join([para.text for para in doc.paragraphs])
+                text = "\n".join([para.text for para in doc.paragraphs])
             return ResumeParser._clean_text(text)
+        except ImportError:
+            print("python-docx not installed. Cannot parse DOCX.")
+            return ""
         except Exception as e:
             print(f"Error parsing DOCX: {e}")
             return ""
@@ -31,9 +35,9 @@ class ResumeParser:
     def _clean_text(text: str) -> str:
         """Remove extra whitespace and artifacts."""
         # Replace multiple newlines with single newline
-        text = re.sub(r'\\n+', '\\n', text)
+        text = re.sub(r'\n+', '\n', text)
         # Replace multiple spaces with single space
-        text = re.sub(r'\\s+', ' ', text)
+        text = re.sub(r'\s+', ' ', text)
         return text.strip()
 
     @staticmethod

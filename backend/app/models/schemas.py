@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Optional
 
 class ResumeContent(BaseModel):
     text: str
@@ -18,5 +18,13 @@ class AnalysisRequest(BaseModel):
 class AnalysisResponse(BaseModel):
     score: float
     missing_skills: List[str]
+    present_skills: List[str]
     recommendations: List[str]
+    trajectory: List[dict] = []
+    interview_questions: List[dict] = []
+    bullet_analysis: List[dict] = []
+    market_analysis: dict = {}
+    success_prediction: dict = {}
+    github_analysis: Optional[dict] = None
+    structure_analysis: dict = {}
     resume_parsing_status: str

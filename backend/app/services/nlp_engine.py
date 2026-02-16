@@ -44,17 +44,30 @@ class NLPEngine:
 
     def extract_skills(self, text: str) -> List[str]:
         """
-        Extract skills using a predefined list or simple NER heuristics.
-        For production, this should use a dedicated Skill NER model or large lookup list.
+        Extract skills using a predefined whitelist (keyword matching).
+        This is much more accurate than generic noun chunking.
         """
-        # Placeholder: Extract capitalized words that might be skills, or use a small lookup
-        # In a real app, load a skills.csv
-        doc = self.nlp(text)
-        skills = []
-        # Heuristic: noun chunks or specific tokens
-        # For now, we will rely on keyword matching from specific lists if available
-        # or just return unique NOUNS/PROPNs as candidates
+        from .skills_data import SKILL_DB
+        
+        doc = self.nlp(text.lower())
+        skills = set()
+        
+        # 1. Direct Token Match
         for token in doc:
-            if token.pos_ in ["NOUN", "PROPN"] and not token.is_stop:
-                skills.append(token.text)
-        return list(set(skills))
+            if token.text in SKILL_DB:
+                skills.add(token.text)
+                
+        # 2. Phrase Matching (Simple N-gram lookahead for multi-word skills like "node.js" or "spring boot")
+        # Converting text to list of words for simple sliding window
+        words = [token.text for token in doc]
+        for i in range(len(words) - 1):
+            bigram = f"{words[i]} {words[i+1]}"
+            if bigram in SKILL_DB:
+                skills.add(bigram)
+                
+        # 3. Handle special cases manually (e.g., C++, C# which might be split)
+        if "c++" in text.lower(): skills.add("c++")
+        if "c#" in text.lower(): skills.add("c#")
+        if ".net" in text.lower(): skills.add(".net")
+
+        return list(skills)
